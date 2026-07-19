@@ -4,15 +4,27 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
-    paths:
-      - 'src/esp32/**'
 
 permissions:
   contents: read
   packages: write
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      esp32: ${{ steps.filter.outputs.esp32 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            esp32:
+              - 'src/esp32/**'
   build:
+    needs: changes
+    if: needs.changes.outputs.esp32 == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -38,13 +50,18 @@ jobs:
           cli-compile-flags: |
             - --export-binaries
 
+      - name: Collect firmware binaries
+        run: |
+          mkdir -p dist
+          find src/esp32 -type f \( -name '*.bin' -o -name '*.elf' \) -exec cp -v {} dist/ \;
+          ls -la dist
+          test -n "$(ls -A dist)"
+
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-firmware
-          path: |
-            src/esp32/**/build/**/*.bin
-            src/esp32/**/build/**/*.elf
+          name: esp32-firmware-pr-${{ github.event.pull_request.number }}
+          path: dist/
           if-no-files-found: error
 
       - name: Log in to GHCR
@@ -62,3 +79,20 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/esp32-firmware:pr-${{ github.event.pull_request.number }}
             ghcr.io/${{ github.repository_owner }}/esp32-firmware:sha-${{ github.sha }}
+
+  esp32-ci:
+    needs: [changes, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate
+        run: |
+          if [[ "${{ needs.changes.outputs.esp32 }}" != "true" ]]; then
+            echo "No src/esp32 changes — skipping build is OK"
+            exit 0
+          fi
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
+            exit 0
+          fi
+          echo "ESP32 build failed: ${{ needs.build.result }}"
+          exit 1
