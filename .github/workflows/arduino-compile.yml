@@ -22,6 +22,7 @@ jobs:
           filters: |
             esp32:
               - 'src/esp32/**'
+
   build:
     needs: changes
     if: needs.changes.outputs.esp32 == 'true'
