@@ -60,5 +60,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/esp32-firmware:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/esp32-firmware:latest
+            ghcr.io/${{ github.repository_owner }}/esp32-firmware:pr-${{ github.event.pull_request.number }}
+            ghcr.io/${{ github.repository_owner }}/esp32-firmware:sha-${{ github.sha }}
