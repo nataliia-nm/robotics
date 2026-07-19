@@ -38,6 +38,8 @@
 //   delay(3000);                      // wait for a second
 // }
 
+// Log changes instead
+
 // void setup() {
 //   // Start serial communication at 115200 baud rate
 //   Serial.begin(115200);
