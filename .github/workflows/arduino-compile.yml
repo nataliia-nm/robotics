@@ -1,0 +1,49 @@
+name: Compile ESP32 Arduino Sketches
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+    # STEP 1: Only trigger the workflow if files inside src/esp32 change
+    paths:
+      - 'src/esp32/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the latest code from the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # 2. Setup Python (Mandatory for ESP32 compilation toolchains)
+      - name: Setup Python Environment
+        uses: actions/setup-python@v6
+        with:
+          python-python-version: '3.11'
+
+      # 3. Install PySerial dependency required by Espressif compilation scripts
+      - name: Install PySerial
+        run: pip install pyserial
+
+      # 4. Setup the Arduino CLI
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      # 5. Connect Espressif Board URL and download the ESP32 platform indexes
+      - name: Install ESP32 Board Core
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config set board_manager.additional_urls https://githubusercontent.com
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      # 7. Compile the sketch targeting the exact ESP32 Dev Module profile
+      - name: Compile All ESP32 Sketches
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: esp32:esp32:esp32
+          sketch-paths: src/esp32
