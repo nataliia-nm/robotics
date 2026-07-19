@@ -31,3 +31,14 @@ jobs:
               source-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
           sketch-paths: |
             - src/esp32
+          cli-compile-flags: |
+            - --export-binaries
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-firmware
+          path: |
+            src/esp32/**/build/**/*.bin
+            src/esp32/**/build/**/*.elf
+          if-no-files-found: error
