@@ -7,6 +7,10 @@ on:
     paths:
       - 'src/esp32/**'
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -42,3 +46,19 @@ jobs:
             src/esp32/**/build/**/*.bin
             src/esp32/**/build/**/*.elf
           if-no-files-found: error
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/esp32-firmware:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/esp32-firmware:latest
