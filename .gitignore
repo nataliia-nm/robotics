@@ -67,3 +67,21 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Arduino build artifacts
+applet/
+build/
+out/
+
+# Compilation outputs
+*.elf
+*.hex
+*.bin
+
+# Project-specific configurations
+.local.properties
