@@ -47,6 +47,8 @@ jobs:
               source-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
           sketch-paths: |
             - src/esp32
+          libraries: |
+            - name: Adafruit NeoPixel
           cli-compile-flags: |
             - --export-binaries
 
